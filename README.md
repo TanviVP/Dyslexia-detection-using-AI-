@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DysLexia Support Platform
 
 A comprehensive web platform designed to support individuals with dyslexia, their families, educators, and healthcare professionals. Built with React.js frontend and Node.js backend.
@@ -215,3 +216,8 @@ If you encounter any issues or have questions:
 ---
 
 **Made with ❤️ for the dyslexia support community**
+=======
+"# SQL-Leetcode-50" 
+"# Dyslexia-detection-using-AI-" 
+"# SQL-Leetcode-50" 
+>>>>>>> e3289d6c50009897572c8a95054d1faf5c82fdde
