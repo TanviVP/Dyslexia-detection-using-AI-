@@ -1,0 +1,175 @@
+[
+  {
+    "_id": "1694865600000",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "userType": "individual_with_dyslexia",
+    "isEmailVerified": true,
+    "isAdmin": false,
+    "accessibilitySettings": {
+      "fontSize": "large",
+      "fontFamily": "OpenDyslexic",
+      "highContrast": true,
+      "reducedMotion": false
+    },
+    "socialAccounts": [
+      {
+        "provider": "google",
+        "providerId": "google123",
+        "email": "john.doe@gmail.com"
+      }
+    ],
+    "createdAt": "2024-09-16T09:00:00.000Z",
+    "updatedAt": "2024-09-16T09:00:00.000Z"
+  },
+  {
+    "_id": "1694865660000",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com",
+    "userType": "educator_teacher",
+    "isEmailVerified": false,
+    "isAdmin": false,
+    "accessibilitySettings": {
+      "fontSize": "medium",
+      "fontFamily": "Arial",
+      "highContrast": false,
+      "reducedMotion": true
+    },
+    "socialAccounts": [],
+    "createdAt": "2024-09-16T09:01:00.000Z",
+    "updatedAt": "2024-09-16T09:01:00.000Z"
+  },
+  {
+    "_id": "1694865720000",
+    "firstName": "Mike",
+    "lastName": "Johnson",
+    "email": "mike.johnson@example.com",
+    "userType": "parent",
+    "isEmailVerified": true,
+    "isAdmin": false,
+    "accessibilitySettings": {
+      "fontSize": "large",
+      "fontFamily": "OpenDyslexic",
+      "highContrast": true,
+      "reducedMotion": false
+    },
+    "socialAccounts": [
+      {
+        "provider": "facebook",
+        "providerId": "fb456",
+        "email": "mike.johnson@facebook.com"
+      },
+      {
+        "provider": "github",
+        "providerId": "gh789",
+        "email": "mike.johnson@github.com"
+      }
+    ],
+    "createdAt": "2024-09-16T09:02:00.000Z",
+    "updatedAt": "2024-09-16T09:02:00.000Z"
+  },
+  {
+    "_id": "1694865780000",
+    "firstName": "Dr. Sarah",
+    "lastName": "Wilson",
+    "email": "sarah.wilson@hospital.com",
+    "userType": "healthcare_professional",
+    "isEmailVerified": true,
+    "isAdmin": false,
+    "accessibilitySettings": {
+      "fontSize": "medium",
+      "fontFamily": "Arial",
+      "highContrast": false,
+      "reducedMotion": false
+    },
+    "socialAccounts": [
+      {
+        "provider": "linkedin",
+        "providerId": "li123",
+        "email": "sarah.wilson@linkedin.com"
+      }
+    ],
+    "createdAt": "2024-09-16T09:03:00.000Z",
+    "updatedAt": "2024-09-16T09:03:00.000Z"
+  },
+  {
+    "_id": "1694865840000",
+    "firstName": "Prof. David",
+    "lastName": "Chen",
+    "email": "david.chen@university.edu",
+    "userType": "researcher",
+    "isEmailVerified": true,
+    "isAdmin": false,
+    "accessibilitySettings": {
+      "fontSize": "small",
+      "fontFamily": "Times New Roman",
+      "highContrast": false,
+      "reducedMotion": true
+    },
+    "socialAccounts": [],
+    "createdAt": "2024-09-16T09:04:00.000Z",
+    "updatedAt": "2024-09-16T09:04:00.000Z"
+  },
+  {
+    "_id": "1694865900000",
+    "firstName": "Admin",
+    "lastName": "User",
+    "email": "admin@dyslexia-support.com",
+    "userType": "admin",
+    "isEmailVerified": true,
+    "isAdmin": true,
+    "accessibilitySettings": {
+      "fontSize": "medium",
+      "fontFamily": "Arial",
+      "highContrast": false,
+      "reducedMotion": false
+    },
+    "socialAccounts": [],
+    "createdAt": "2024-09-16T09:05:00.000Z",
+    "updatedAt": "2024-09-16T09:05:00.000Z"
+  },
+  {
+    "_id": "1758040598940",
+    "firstName": "Austin",
+    "lastName": "dsouza",
+    "email": "austin@gmail.com",
+    "password": "$2a$12$M/gn8GTysYJKBDnOxqcZj.q0P8WksAjKnuy.dSnvaClo5yKaLbHp6",
+    "userType": "educator_teacher",
+    "newsletterSubscribed": true,
+    "isEmailVerified": false,
+    "isAdmin": false,
+    "accessibilitySettings": {
+      "fontSize": "medium",
+      "fontFamily": "Arial",
+      "highContrast": false,
+      "reducedMotion": false
+    },
+    "socialAccounts": [],
+    "lastLogin": "2025-09-16T16:36:38.938Z",
+    "createdAt": "2025-09-16T16:36:38.940Z",
+    "updatedAt": "2025-09-16T16:36:38.940Z"
+  },
+  {
+    "_id": "1758041369582",
+    "firstName": "modi",
+    "lastName": "vs",
+    "email": "modijiindia@gmail.com",
+    "password": "$2a$12$LQ.AAk/dm0omLPvXxnTkkOs/TTnnHuANj.4xn.XKM9N3ge4aOmLxq",
+    "userType": "researcher",
+    "newsletterSubscribed": true,
+    "isEmailVerified": false,
+    "isAdmin": false,
+    "accessibilitySettings": {
+      "fontSize": "medium",
+      "fontFamily": "Arial",
+      "highContrast": false,
+      "reducedMotion": false
+    },
+    "socialAccounts": [],
+    "lastLogin": "2025-09-16T16:49:29.581Z",
+    "createdAt": "2025-09-16T16:49:29.582Z",
+    "updatedAt": "2025-09-16T16:49:29.582Z"
+  }
+]
