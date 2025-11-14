@@ -1,20 +1,19 @@
 import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import WordRecognitionGame from '../components/games/WordRecognitionGame'
-import LetterSequencingGameSimple from '../components/games/LetterSequencingGameSimple'
-import ReadingComprehensionGame from '../components/games/ReadingComprehensionGame'
-import LetterMirrorGame from '../components/games/LetterMirrorGame'
-import SpeedWordsGame from '../components/games/SpeedWordsGame'
-import SoundTwinsGame from '../components/games/SoundTwinsGame'
-import BuildWordGame from '../components/games/BuildWordGame'
-import OddOneOutGame from '../components/games/OddOneOutGame'
+import WordRecognitionLearning from '../components/games/WordRecognitionLearning'
+import LetterSequencingLearning from '../components/games/LetterSequencingLearning'
+import ReadingComprehensionLearning from '../components/games/ReadingComprehensionLearning'
+import LetterMirrorLearning from '../components/games/LetterMirrorLearning'
+import SpeedWordsLearning from '../components/games/SpeedWordsLearning'
+import SoundTwinsLearning from '../components/games/SoundTwinsLearning'
+import BuildWordLearning from '../components/games/BuildWordLearning'
+import OddOneOutLearning from '../components/games/OddOneOutLearning'
 
 const GamePage: React.FC = () => {
   const { gameType } = useParams<{ gameType: string }>()
   const { isAdmin } = useAuth()
 
-  // Prevent admin users from accessing games
   if (isAdmin) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
@@ -30,29 +29,32 @@ const GamePage: React.FC = () => {
   }
 
   switch (gameType) {
-    case 'word-recognition':
-      return <WordRecognitionGame onGameComplete={(score) => console.log('Game completed with score:', score)} />
+    case 'word-recognition-learning':
+      return <WordRecognitionLearning />
     
-    case 'letter-sequencing':
-      return <LetterSequencingGameSimple />
+    case 'letter-sequencing-learning':
+      return <LetterSequencingLearning />
     
-    case 'reading-comprehension':
-      return <ReadingComprehensionGame onGameComplete={(score) => console.log('Game completed with score:', score)} />
+    case 'reading-comprehension-learning':
+      return <ReadingComprehensionLearning />
     
-    case 'letter-mirror':
-      return <LetterMirrorGame />
+    case 'letter-mirror-learning':
+      return <LetterMirrorLearning />
     
-    case 'speed-words':
-      return <SpeedWordsGame />
+    case 'speed-words-learning':
+      return <SpeedWordsLearning />
     
-    case 'sound-twins':
-      return <SoundTwinsGame />
+    case 'sound-twins-learning':
+      return <SoundTwinsLearning />
     
-    case 'odd-one-out':
-      return <OddOneOutGame />
+    case 'build-word-learning':
+      return <BuildWordLearning />
+    
+    case 'odd-one-out-learning':
+      return <OddOneOutLearning />
     
     default:
-      return <WordRecognitionGame onGameComplete={(score) => console.log('Game completed with score:', score)} />
+      return <WordRecognitionLearning />
   }
 }
 

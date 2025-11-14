@@ -8,14 +8,16 @@ import {
   BarChart3, 
   FileText, 
   TrendingUp,
-
   AlertTriangle,
   CheckCircle,
   Clock,
   User,
-  LogOut
+  LogOut,
+  Moon,
+  Sun
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface GameResult {
   id: string
@@ -43,6 +45,7 @@ interface UserStats {
 
 const AdminDashboard: React.FC = () => {
   const { signOut, user } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const [stats, setStats] = useState<UserStats>({
     totalUsers: 0,
     totalAssessments: 0,
@@ -147,7 +150,10 @@ const AdminDashboard: React.FC = () => {
               <span className="text-xl font-bold text-gray-900">Admin Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Welcome, {user?.email}</span>
+              <span className="text-sm text-gray-600">Welcome, {user?.email?.split(/[.@]/)[0]}</span>
+              <button onClick={toggleTheme} className="btn btn-ghost btn-sm">
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
               <button 
                 onClick={refreshData}
                 className="btn btn-ghost btn-sm"
@@ -184,7 +190,7 @@ const AdminDashboard: React.FC = () => {
         </motion.div>
 
         {/* Key Metrics */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <motion.div 
             className="card p-6 text-center"
             initial={{ opacity: 0, y: 20 }}
@@ -224,18 +230,7 @@ const AdminDashboard: React.FC = () => {
             <div className="text-gray-600">Avg Score</div>
           </motion.div>
 
-          <motion.div 
-            className="card p-6 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-6 h-6 text-orange-600" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">{stats.dyslexiaDetectionRate}%</div>
-            <div className="text-gray-600">Dyslexia Rate</div>
-          </motion.div>
+
 
           <motion.div 
             className="card p-6 text-center"

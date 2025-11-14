@@ -18,6 +18,7 @@ const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string(),
+  role: z.enum(['student', 'parent', 'teacher']),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -40,6 +41,7 @@ const AuthPage: React.FC = () => {
   const location = useLocation()
 
   const isAdminMode = new URLSearchParams(location.search).get('admin') === 'true'
+  const roleParam = new URLSearchParams(location.search).get('role')
   // const from = location.state?.from?.pathname || (isAdminMode ? '/admin' : '/games')
 
   // Redirect when user becomes authenticated
@@ -61,6 +63,9 @@ const AuthPage: React.FC = () => {
 
   const signUpForm = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      role: (roleParam as 'student' | 'parent' | 'teacher') || 'student'
+    }
   })
 
   const resetForm = useForm<ResetForm>({
@@ -80,7 +85,15 @@ const AuthPage: React.FC = () => {
 
   const handleSignUp = async (data: SignUpForm) => {
     setLoading(true)
-    const { error } = await signUp(data.email, data.password, data.username)
+    // Modify email based on role for easy identification
+    let email = data.email
+    if (data.role === 'teacher' && !email.includes('teacher')) {
+      email = email.replace('@', '.teacher@')
+    } else if (data.role === 'parent' && !email.includes('parent')) {
+      email = email.replace('@', '.parent@')
+    }
+    
+    const { error } = await signUp(email, data.password, data.username, data.role)
     setLoading(false)
     
     // The useEffect will handle redirection when user state changes
@@ -126,7 +139,7 @@ const AuthPage: React.FC = () => {
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               {mode === 'signin' && (isAdminMode ? 'Access the admin dashboard with your credentials.' : 'Welcome back! Please sign in to continue.')}
-              {mode === 'signup' && 'Join thousands of users improving reading skills.'}
+              {mode === 'signup' && (roleParam ? `Create your ${roleParam} account to get started.` : 'Join thousands of users improving reading skills.')}
               {mode === 'reset' && 'Enter your email to receive reset instructions.'}
             </p>
             {isAdminMode && mode === 'signin' && (
@@ -299,6 +312,25 @@ const AuthPage: React.FC = () => {
                 {signUpForm.formState.errors.confirmPassword && (
                   <p className="mt-1 text-sm text-danger-600">
                     {signUpForm.formState.errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                  I am a...
+                </label>
+                <select
+                  {...signUpForm.register('role')}
+                  className={`input ${signUpForm.formState.errors.role ? 'input-error' : ''}`}
+                >
+                  <option value="student">Student (Learning Games)</option>
+                  <option value="parent">Parent (Monitor Children)</option>
+                  <option value="teacher">Teacher (Monitor Students)</option>
+                </select>
+                {signUpForm.formState.errors.role && (
+                  <p className="mt-1 text-sm text-danger-600">
+                    {signUpForm.formState.errors.role.message}
                   </p>
                 )}
               </div>

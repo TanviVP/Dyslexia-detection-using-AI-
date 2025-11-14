@@ -17,13 +17,19 @@ import {
   Zap,
   Puzzle,
   Search,
-  Layers
+  Layers,
+  GraduationCap,
+  Users,
+  Moon,
+  Sun
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { gameConfigs } from '../lib/gameConfig'
 
 const Dashboard: React.FC = () => {
-  const { user, signOut, isAdmin } = useAuth()
+  const { user, signOut, isAdmin, isTeacher, isParent } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
 
   // Redirect admin users to admin dashboard
   React.useEffect(() => {
@@ -47,8 +53,99 @@ const Dashboard: React.FC = () => {
     )
   }
 
+  const learningGames = [
+    {
+      id: 'word-recognition-learning',
+      title: 'Word Recognition Learning',
+      description: 'Adaptive practice with voice support and hints',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '10-15 minutes',
+      color: 'from-blue-400 to-indigo-500',
+      bgColor: 'from-blue-50 to-indigo-50',
+      category: 'learning'
+    },
+    {
+      id: 'letter-sequencing-learning',
+      title: 'Letter Sequencing Learning',
+      description: 'Practice spelling with trace mode and visual cues',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '12-18 minutes',
+      color: 'from-green-400 to-emerald-500',
+      bgColor: 'from-green-50 to-emerald-50',
+      category: 'learning'
+    },
+    {
+      id: 'reading-comprehension-learning',
+      title: 'Reading Comprehension Learning',
+      description: 'Guided reading with word highlighting and speed tracking',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '15-20 minutes',
+      color: 'from-purple-400 to-violet-500',
+      bgColor: 'from-purple-50 to-violet-50',
+      category: 'learning'
+    },
+    {
+      id: 'letter-mirror-learning',
+      title: 'Letter Mirror Learning',
+      description: 'Visual discrimination practice with adaptive difficulty',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '8-12 minutes',
+      color: 'from-orange-400 to-red-500',
+      bgColor: 'from-orange-50 to-red-50',
+      category: 'learning'
+    },
+    {
+      id: 'speed-words-learning',
+      title: 'Speed Words Learning',
+      description: 'Rapid naming practice with voice feedback',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '5-8 minutes',
+      color: 'from-yellow-400 to-orange-500',
+      bgColor: 'from-yellow-50 to-orange-50',
+      category: 'learning'
+    },
+    {
+      id: 'sound-twins-learning',
+      title: 'Sound Twins Learning',
+      description: 'Auditory discrimination with hints and repetition',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '10-15 minutes',
+      color: 'from-indigo-400 to-blue-500',
+      bgColor: 'from-indigo-50 to-blue-50',
+      category: 'learning'
+    },
+    {
+      id: 'build-word-learning',
+      title: 'Build Word Learning',
+      description: 'Word construction with letter-by-letter guidance',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '12-18 minutes',
+      color: 'from-pink-400 to-purple-500',
+      bgColor: 'from-pink-50 to-purple-50',
+      category: 'learning'
+    },
+    {
+      id: 'odd-one-out-learning',
+      title: 'Odd One Out Learning',
+      description: 'Pattern recognition with hints and explanations',
+      icon: GraduationCap,
+      difficulty: 'Adaptive',
+      duration: '8-12 minutes',
+      color: 'from-teal-400 to-green-500',
+      bgColor: 'from-teal-50 to-green-50',
+      category: 'learning'
+    }
+  ]
+
   const iconMap = {
-    BookOpen, Brain, Shuffle, Eye, Zap, Volume2, Search
+    BookOpen, Brain, Shuffle, Eye, Zap, Volume2, Search, GraduationCap
   }
 
   const games = Object.values(gameConfigs).map(config => ({
@@ -63,36 +160,30 @@ const Dashboard: React.FC = () => {
 
   // Organize games by category for better visual layout
   const gamesByCategory = {
-    reading: games.filter(g => g.category === 'reading'),
-    visual: games.filter(g => g.category === 'visual'),
-    auditory: games.filter(g => g.category === 'auditory'),
-    cognitive: games.filter(g => g.category === 'cognitive')
+    learning: learningGames
   }
 
   const categoryInfo = {
-    reading: { title: '📚 Reading & Language', color: 'from-blue-500 to-purple-600', emoji: '📖' },
-    visual: { title: '👁️ Visual Processing', color: 'from-orange-500 to-red-600', emoji: '🔍' },
-    auditory: { title: '🎧 Auditory Skills', color: 'from-indigo-500 to-blue-600', emoji: '🎵' },
-    cognitive: { title: '🧠 Cognitive Skills', color: 'from-green-500 to-teal-600', emoji: '⚡' }
+    learning: { title: '🎓 Adaptive Learning', color: 'from-emerald-500 to-teal-600', emoji: '📚' }
   }
 
   const howItWorks = [
     {
       step: '1',
-      title: 'Choose Your Game',
-      description: 'Select from our three scientifically designed assessment games',
+      title: 'Choose Your Activity',
+      description: 'Select from our adaptive learning games designed to build skills',
       icon: Target
     },
     {
       step: '2',
-      title: 'Complete Assessment',
-      description: 'Play through 10 rounds at your own pace with immediate feedback',
+      title: 'Practice & Learn',
+      description: 'Play at your own pace with hints, voice support, and encouragement',
       icon: Star
     },
     {
       step: '3',
-      title: 'View Results',
-      description: 'Get detailed analysis and personalized recommendations',
+      title: 'Track Progress',
+      description: 'See your improvement and unlock achievements as you learn',
       icon: Trophy
     }
   ]
@@ -105,14 +196,29 @@ const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <Brain className="w-8 h-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">DysLexia Support</span>
+              <span className="text-xl font-bold text-gray-900">Dyslyze</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-600 hidden sm:block">Welcome, {user?.email}</span>
+              <span className="text-gray-600 hidden sm:block">Welcome, {user?.email?.split(/[.@]/)[0]}</span>
+              <button onClick={toggleTheme} className="btn btn-ghost btn-sm">
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
               {isAdmin && (
                 <Link to="/admin" className="btn btn-outline btn-sm">
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Admin
+                </Link>
+              )}
+              {(isTeacher || isAdmin) && (
+                <Link to="/teacher" className="btn btn-outline btn-sm">
+                  <Users className="w-4 h-4 mr-2" />
+                  Teacher
+                </Link>
+              )}
+              {(isParent || isAdmin) && (
+                <Link to="/parent" className="btn btn-outline btn-sm">
+                  <User className="w-4 h-4 mr-2" />
+                  Parent
                 </Link>
               )}
               <Link to="/profile" className="btn btn-ghost btn-sm">
@@ -142,7 +248,7 @@ const Dashboard: React.FC = () => {
             animate={{ scale: 1 }}
             transition={{ duration: 0.8, type: "spring" }}
           >
-            🎮 Choose Your Assessment Adventure!
+            🎓 Start Your Learning Journey!
           </motion.h1>
           <motion.p 
             className="text-xl text-gray-600 max-w-4xl mx-auto mb-8 leading-relaxed"
@@ -150,8 +256,8 @@ const Dashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Discover your learning strengths through our scientifically-designed interactive games. 
-            Each assessment is crafted to be engaging, informative, and tailored to your skill level.
+            Build reading confidence through personalized learning games that adapt to your pace. 
+            Each activity provides supportive practice with hints, voice guidance, and encouraging feedback.
           </motion.p>
           <motion.div 
             className="flex flex-wrap justify-center gap-4 mb-8"
@@ -160,13 +266,13 @@ const Dashboard: React.FC = () => {
             transition={{ delay: 0.5 }}
           >
             <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-sm font-medium">
-              ✨ Instant Feedback
+              🎯 Adaptive Learning
             </div>
             <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-sm font-medium">
-              📊 Detailed Analytics
+              🔊 Voice Support
             </div>
             <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full text-sm font-medium">
-              🎯 Multiple Difficulty Levels
+              💡 Helpful Hints
             </div>
           </motion.div>
         </motion.div>
@@ -196,7 +302,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900">{info.title}</h2>
-                      <p className="text-gray-600">{categoryGames.length} assessment{categoryGames.length > 1 ? 's' : ''} available</p>
+                      <p className="text-gray-600">{categoryGames.length} learning game{categoryGames.length > 1 ? 's' : ''} available</p>
                     </div>
                   </motion.div>
                 </div>
@@ -256,7 +362,7 @@ const Dashboard: React.FC = () => {
                           className={`btn w-full bg-gradient-to-r ${game.color} text-white hover:shadow-lg transform transition-all duration-300 group-hover:scale-105 border-0 mt-auto`}
                         >
                           <Play className="w-4 h-4 mr-2" />
-                          Start Assessment
+                          Start Learning
                         </Link>
                       </div>
                     </motion.div>
@@ -275,7 +381,7 @@ const Dashboard: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
         >
           <h2 className="text-3xl font-bold text-center mb-8 gradient-text">
-            How Assessment Works
+            How Learning Works
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {howItWorks.map((step, index) => (
@@ -302,41 +408,41 @@ const Dashboard: React.FC = () => {
         >
           <div className="card p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              🎯 Scientifically Validated
+              🎯 Personalized Learning
             </h3>
             <p className="text-gray-600">
-              Our assessments are based on proven research and validated methodologies 
-              used by educational professionals worldwide.
+              Our games adapt to your skill level, providing the right challenge 
+              and support to help you build confidence and improve reading skills.
             </p>
           </div>
           
           <div className="card p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              📊 Detailed Analytics
+              📈 Progress Tracking
             </h3>
             <p className="text-gray-600">
-              Get comprehensive reports with personalized recommendations and 
-              insights into reading patterns and potential areas for improvement.
+              Watch your skills grow with progress tracking, achievement badges, 
+              and encouraging feedback that celebrates every step forward.
             </p>
           </div>
           
           <div className="card p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              🎮 Engaging Experience
+              🎮 Fun & Supportive
             </h3>
             <p className="text-gray-600">
-              Interactive games make assessment enjoyable while maintaining 
-              scientific accuracy and reliability.
+              Learning feels like play with engaging games, helpful hints, 
+              and voice guidance that makes practice enjoyable and stress-free.
             </p>
           </div>
           
           <div className="card p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              🔒 Privacy Protected
+              🔒 Safe Learning Space
             </h3>
             <p className="text-gray-600">
-              Your data is secure and private. We follow strict privacy guidelines 
-              and never share personal information.
+              Practice in a judgment-free environment where mistakes are part of learning. 
+              Your progress is private and secure.
             </p>
           </div>
         </motion.div>

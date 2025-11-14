@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
@@ -8,13 +9,16 @@ import Dashboard from './pages/Dashboard'
 import GamePage from './pages/GamePage'
 import AdminDashboard from './pages/AdminDashboard'
 import ProfilePage from './pages/ProfilePage'
+import ParentDashboard from './pages/ParentDashboard'
+import TeacherDashboard from './pages/TeacherDashboard'
 import './App.css'
 
 function App() {
   return (
-    <AuthProvider>
+    <ThemeProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
+        <AuthProvider>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
@@ -58,6 +62,22 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/parent" 
+              element={
+                <ProtectedRoute requireParent>
+                  <ParentDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/teacher" 
+              element={
+                <ProtectedRoute requireTeacher>
+                  <TeacherDashboard />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
           <Toaster 
             position="top-right" 
@@ -74,8 +94,9 @@ function App() {
             }}
           />
         </div>
+        </AuthProvider>
       </Router>
-    </AuthProvider>
+    </ThemeProvider>
   )
 }
 

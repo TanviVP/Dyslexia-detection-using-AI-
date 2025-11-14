@@ -6,13 +6,17 @@ import LoadingSpinner from '../ui/LoadingSpinner'
 interface ProtectedRouteProps {
   children: React.ReactNode
   requireAdmin?: boolean
+  requireTeacher?: boolean
+  requireParent?: boolean
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requireAdmin = false 
+  requireAdmin = false,
+  requireTeacher = false,
+  requireParent = false
 }) => {
-  const { user, loading, isAdmin } = useAuth()
+  const { user, loading, isAdmin, isTeacher, isParent, userRole } = useAuth()
   const location = useLocation()
 
   if (loading) {
@@ -28,7 +32,15 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (requireAdmin && !isAdmin) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/games" replace />
+  }
+
+  if (requireTeacher && !isTeacher && !isAdmin) {
+    return <Navigate to="/games" replace />
+  }
+
+  if (requireParent && !isParent && !isAdmin) {
+    return <Navigate to="/games" replace />
   }
 
   return <>{children}</>

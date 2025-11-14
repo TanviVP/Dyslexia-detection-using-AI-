@@ -10,6 +10,8 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   isAdmin: boolean
+  isTeacher: boolean
+  isParent: boolean
   signUp: (email: string, password: string, username: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
@@ -34,6 +36,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isTeacher, setIsTeacher] = useState(false)
+  const [isParent, setIsParent] = useState(false)
 
   useEffect(() => {
     if (isDevelopment) {
@@ -41,7 +45,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const getInitialSession = async () => {
         const { data: { session } } = await mockAuth.getSession()
         setUser(session?.user ?? null)
-        setIsAdmin(session?.user?.email === 'admin@dyslexia.com')
+        const email = session?.user?.email || ''
+        setIsAdmin(email === 'admin@dyslexia.com')
+        setIsTeacher(email.startsWith('teacher@') || email.includes('.teacher@'))
+        setIsParent(email.startsWith('parent@') || email.includes('.parent@'))
         setLoading(false)
       }
 
@@ -50,7 +57,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data: { subscription } } = mockAuth.onAuthStateChange(
         async (_event, session) => {
           setUser(session?.user ?? null)
-          setIsAdmin(session?.user?.email === 'admin@dyslexia.com')
+          const email = session?.user?.email || ''
+          setIsAdmin(email === 'admin@dyslexia.com')
+          setIsTeacher(email.startsWith('teacher@') || email.includes('.teacher@'))
+          setIsParent(email.startsWith('parent@') || email.includes('.parent@'))
           setLoading(false)
         }
       )
@@ -62,8 +72,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
         
+        setUser(session?.user ?? null)
+        
         if (session?.user) {
           await checkAdminStatus(session.user.id)
+          const email = session.user.email || ''
+          setIsTeacher(email.startsWith('teacher@'))
+          setIsParent(email.startsWith('parent@'))
         }
         
         setLoading(false)
@@ -77,8 +92,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           if (session?.user) {
             await checkAdminStatus(session.user.id)
+            const email = session.user.email || ''
+            setIsTeacher(email.startsWith('teacher@') || email.includes('.teacher@'))
+            setIsParent(email.startsWith('parent@') || email.includes('.parent@'))
           } else {
             setIsAdmin(false)
+            setIsTeacher(false)
+            setIsParent(false)
           }
           
           setLoading(false)
@@ -217,6 +237,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         toast.success('Signed out successfully')
         setUser(null)
         setIsAdmin(false)
+        setIsTeacher(false)
+        setIsParent(false)
       }
     } catch (error: any) {
       toast.error('Sign out failed', {
@@ -255,6 +277,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     loading,
     isAdmin,
+    isTeacher,
+    isParent,
     signUp,
     signIn,
     signOut,
