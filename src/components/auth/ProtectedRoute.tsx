@@ -16,7 +16,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireTeacher = false,
   requireParent = false
 }) => {
-  const { user, loading, isAdmin, isTeacher, isParent, userRole } = useAuth()
+  const { user, loading, isAdmin, isTeacher, isParent } = useAuth()
   const location = useLocation()
 
   if (loading) {

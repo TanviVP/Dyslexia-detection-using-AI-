@@ -8,6 +8,8 @@ import InteractiveButton from '../ui/InteractiveButton'
 import AnimatedCard from '../ui/AnimatedCard'
 import { playSuccessSound, playErrorSound, createParticles, createStickers } from '../../lib/gameEffects'
 import { AnimatePresence } from 'framer-motion'
+import { saveGameScore } from '../../services/gamesService'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface GameState {
   currentPair: { sound1: string; sound2: string; areSame: boolean }
@@ -28,7 +30,11 @@ const SoundTwinsGame: React.FC = () => {
     feedback: '',
     isPlaying: false
   })
+  const [errors, setErrors] = useState<Record<string, any>>({})
+  const [roundStartTime, setRoundStartTime] = useState<number>(0)
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const [saving, setSaving] = useState(false)
   const gameConfig = gameConfigs['sound-twins']
 
   const soundPairSets = {
@@ -69,6 +75,7 @@ const SoundTwinsGame: React.FC = () => {
       feedback: '',
       isPlaying: false
     }))
+    setRoundStartTime(Date.now())
   }
 
   const playSound = (text: string) => {
@@ -97,6 +104,14 @@ const SoundTwinsGame: React.FC = () => {
   const handleAnswer = (userAnswer: boolean) => {
     const isCorrect = userAnswer === gameState.currentPair.areSame
     const points = isCorrect ? 1 : 0
+    const responseTime = Date.now() - roundStartTime
+    
+    if (!isCorrect) {
+      setErrors(prev => ({ 
+        ...prev, 
+        [`${gameState.currentPair.sound1}_${gameState.currentPair.sound2}`]: userAnswer 
+      }))
+    }
     
     if (isCorrect) {
       playSuccessSound()
@@ -119,10 +134,32 @@ const SoundTwinsGame: React.FC = () => {
       feedback: isCorrect ? '🎉 Perfect! Great listening!' : '😅 Try again! Listen carefully!'
     }))
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (!selectedLevel) return
       
       if (gameState.round >= selectedLevel.questionsCount) {
+        // Save score to backend
+        const accuracy = (gameState.score / selectedLevel.questionsCount) * 100
+        const avgResponseTime = responseTime
+        
+        if (user?.id) {
+          setSaving(true)
+          try {
+            await saveGameScore({
+              userId: user.id,
+              gameName: 'sound_twins',
+              difficulty: selectedLevel.difficulty,
+              accuracy: accuracy / 100,
+              avgResponseTime,
+              errors
+            })
+          } catch (err) {
+            console.error("Failed to save score:", err)
+          } finally {
+            setSaving(false)
+          }
+        }
+        
         setGameState(prev => ({ ...prev, gameOver: true }))
       } else {
         setGameState(prev => ({ ...prev, round: prev.round + 1 }))

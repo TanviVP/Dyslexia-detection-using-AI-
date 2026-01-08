@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Volume2, Star, Trophy, Lightbulb, RotateCcw } from 'lucide-react'
+import { Volume2, Star, Trophy, Lightbulb } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { getLearningProfile, updateGameProgress, getAdaptiveDifficulty, getEncouragingMessage, speakText } from '../../lib/learningProgress'
 
@@ -48,7 +48,7 @@ const WordRecognitionLearning: React.FC = () => {
   const generateRound = () => {
     if (!user) return
     
-    const difficulty = getAdaptiveDifficulty(user.email, 'wordRecognition')
+    const difficulty = getAdaptiveDifficulty(user.email || '', 'wordRecognition')
     const categoryWords = wordCategories[gameState.category as keyof typeof wordCategories]
     const word = categoryWords[Math.floor(Math.random() * categoryWords.length)]
     
@@ -100,7 +100,7 @@ const WordRecognitionLearning: React.FC = () => {
     setGameState(prev => ({ ...prev, selectedIndex: index }))
     
     if (user) {
-      const profile = updateGameProgress(user.email, 'wordRecognition', {
+      const profile = updateGameProgress(user.email || '', 'wordRecognition', {
         accuracy,
         reactionTime,
         difficulty: gameState.level,
@@ -162,7 +162,7 @@ const WordRecognitionLearning: React.FC = () => {
   }, [user])
 
   if (gameState.gameOver) {
-    const profile = user ? getLearningProfile(user.email) : null
+    const profile = user ? getLearningProfile(user.email || '') : null
     const badges = profile?.wordRecognition.badges || []
     
     return (
@@ -264,7 +264,7 @@ const WordRecognitionLearning: React.FC = () => {
             {gameState.options.map((word, index) => {
               const isSelected = gameState.selectedIndex === index
               const isCorrect = index === gameState.correctIndex
-              const isWrong = isSelected && !isCorrect
+
               
               return (
                 <motion.button

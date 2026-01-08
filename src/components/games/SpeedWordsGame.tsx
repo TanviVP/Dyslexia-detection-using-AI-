@@ -4,6 +4,8 @@ import { CheckCircle, Clock, Target, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { gameConfigs, GameLevel } from '../../lib/gameConfig'
 import LevelSelector from './LevelSelector'
+import { saveGameScore } from '../../services/gamesService'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface GameState {
   images: { name: string; emoji: string; id: number }[]
@@ -27,6 +29,8 @@ const SpeedWordsGame: React.FC = () => {
     roundStartTime: 0
   })
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const [saving, setSaving] = useState(false)
   const gameConfig = gameConfigs['speed-words']
 
   const imageItemSets = {
@@ -111,10 +115,33 @@ const SpeedWordsGame: React.FC = () => {
     }
   }
 
-  const nextRound = () => {
+  const nextRound = async () => {
     if (!selectedLevel) return
     
     if (gameState.round >= selectedLevel.questionsCount) {
+      // Save score to backend
+      const totalTime = Date.now() - gameState.startTime
+      const accuracy = 100 // Speed game assumes all correct
+      const avgResponseTime = totalTime / selectedLevel.questionsCount
+      
+      if (user?.id) {
+        setSaving(true)
+        try {
+          await saveGameScore({
+            userId: user.id,
+            gameName: 'speed_words',
+            difficulty: selectedLevel.difficulty,
+            accuracy: accuracy / 100,
+            avgResponseTime,
+            errors: {}
+          })
+        } catch (err) {
+          console.error("Failed to save score:", err)
+        } finally {
+          setSaving(false)
+        }
+      }
+      
       setGameState(prev => ({ ...prev, gameOver: true }))
     } else {
       setGameState(prev => ({ ...prev, round: prev.round + 1 }))
@@ -261,7 +288,7 @@ const SpeedWordsGame: React.FC = () => {
                   disabled={isSelected}
                 >
                   <div className="text-6xl mb-2">{item.emoji}</div>
-                  <div className="text-lg font-semibold text-gray-700">{item.name}</div>
+                  <div className="text-lg font-semibold text-gray-700 font-dyslexic">{item.name}</div>
                   
                   {isSelected && (
                     <motion.div 

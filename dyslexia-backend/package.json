@@ -1,0 +1,20 @@
+{
+  "name": "dyslexia-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Dyslexia Learning Platform",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.19.2",
+    "@supabase/supabase-js": "^2.38.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

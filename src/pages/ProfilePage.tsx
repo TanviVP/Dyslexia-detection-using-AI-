@@ -23,6 +23,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { getLearningProfile, getStreakBadge } from '../lib/learningProgress'
 import { CircularProgress, BarChart, LineChart, ProgressBar } from '../components/ui/Charts'
+import { getAssessment, type NeurologicalAssessment } from '../services/assessmentService'
+import { getRecentScores } from '../services/gamesService'
 
 interface GameResult {
   id: string
@@ -84,9 +86,10 @@ const ProfilePage: React.FC = () => {
   })
   const [refreshKey, setRefreshKey] = useState(0)
   const [learningProfile, setLearningProfile] = useState<any>(null)
+  const [assessment, setAssessment] = useState<NeurologicalAssessment | null>(null)
 
   useEffect(() => {
-    const loadUserStats = () => {
+    const loadUserStats = async () => {
       try {
         // Load learning profile for streak and badges
         if (user?.email) {
@@ -94,36 +97,53 @@ const ProfilePage: React.FC = () => {
           setLearningProfile(profile)
         }
         
-        const gameResults: GameResult[] = JSON.parse(localStorage.getItem('gameResults') || '[]')
+        // Load neurological assessment from backend
+        if (user?.id) {
+          const assessmentData = await getAssessment(user.id)
+          setAssessment(assessmentData)
+        }
         
-        // Filter results for current user (for now, we'll show all since we don't have proper user IDs)
-        const userResults = gameResults
+        // Load real game data from backend
+        const backendScores = user?.id ? await getRecentScores(100, user.id) : []
+        const userResults = backendScores || []
         
         const totalGames = userResults.length
         const averageScore = totalGames > 0 
-          ? Math.round(userResults.reduce((sum, result) => sum + (result.score / result.totalQuestions * 100), 0) / totalGames)
+          ? Math.round(userResults.reduce((sum, result) => sum + (result.score || 0), 0) / totalGames)
           : 0
         
         const bestScore = totalGames > 0
-          ? Math.max(...userResults.map(result => (result.score / result.totalQuestions * 100)))
+          ? Math.max(...userResults.map(result => (result.score || 0)))
           : 0
         
         // Games played by type
         const gamesPlayed = userResults.reduce((acc, result) => {
-          acc[result.gameName] = (acc[result.gameName] || 0) + 1
+          acc[result.game || 'Unknown'] = (acc[result.game || 'Unknown'] || 0) + 1
           return acc
         }, {} as { [key: string]: number })
         
         // Difficulty distribution
         const difficultyStats = userResults.reduce((acc, result) => {
-          acc[result.difficulty] = (acc[result.difficulty] || 0) + 1
+          acc[result.difficulty || 'Medium'] = (acc[result.difficulty || 'Medium'] || 0) + 1
           return acc
         }, {} as { [key: string]: number })
         
-        // Recent games (last 5)
+        // Recent games (last 5) - convert backend format to expected format
         const recentGames = userResults
-          .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           .slice(0, 5)
+          .map(result => ({
+            id: result.id?.toString() || Date.now().toString(),
+            userId: result.user_id || user?.id || '',
+            username: user?.email?.split('@')[0] || 'User',
+            gameType: result.game || 'unknown',
+            gameName: result.game || 'Unknown Game',
+            difficulty: result.difficulty || 'Medium',
+            score: result.score || 0,
+            totalQuestions: 10, // Default since backend doesn't store this
+            hasDyslexia: (result.score || 0) < 60,
+            completedAt: result.created_at
+          }))
         
         // Calculate achievements
         const achievements = []
@@ -141,7 +161,7 @@ const ProfilePage: React.FC = () => {
           gamesPlayed,
           difficultyStats,
           recentGames,
-          totalTime: userResults.length * 15, // Estimate 15 minutes per game
+          totalTime: userResults.reduce((sum, result) => sum + (result.time_taken || 0), 0) / 60000, // Convert ms to minutes
           achievements
         })
       } catch (error) {
@@ -506,6 +526,126 @@ const ProfilePage: React.FC = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Neurological Assessment */}
+        {assessment && (
+          <motion.div 
+            className="card p-6 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              🧠 Neurological Assessment
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Risk Level */}
+              <div className={`p-4 rounded-lg ${
+                assessment.assessment.overallRisk === 'high_risk' ? 'bg-gradient-to-r from-red-50 to-red-100' :
+                assessment.assessment.overallRisk === 'moderate_risk' ? 'bg-gradient-to-r from-yellow-50 to-orange-100' :
+                'bg-gradient-to-r from-green-50 to-emerald-100'
+              }`}>
+                <h3 className="font-medium text-gray-800 mb-3">Overall Risk Level</h3>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-4 h-4 rounded-full ${
+                    assessment.assessment.overallRisk === 'high_risk' ? 'bg-red-500' :
+                    assessment.assessment.overallRisk === 'moderate_risk' ? 'bg-yellow-500' :
+                    'bg-green-500'
+                  }`}></div>
+                  <span className={`font-semibold ${
+                    assessment.assessment.overallRisk === 'high_risk' ? 'text-red-700' :
+                    assessment.assessment.overallRisk === 'moderate_risk' ? 'text-yellow-700' :
+                    'text-green-700'
+                  }`}>
+                    {assessment.assessment.overallRisk.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Based on {assessment.totalAssessments} game assessments (Confidence: {Math.round(assessment.assessment.confidence * 100)}%)
+                </p>
+              </div>
+              
+              {/* Detected Patterns */}
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+                <h3 className="font-medium text-gray-800 mb-3">Detected Patterns</h3>
+                <div className="space-y-2">
+                  {assessment.indicators.slice(0, 3).map((indicator, index) => (
+                    <div key={indicator.name} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <span className="text-sm text-gray-700">
+                          {indicator.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500">{indicator.frequency}x</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Risk Distribution */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="font-medium text-gray-800 mb-3">Assessment Distribution</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{assessment.riskDistribution.low}</div>
+                  <div className="text-sm text-gray-600">Low Risk</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{
+                      width: `${(assessment.riskDistribution.low / assessment.totalAssessments) * 100}%`
+                    }}></div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">{assessment.riskDistribution.moderate}</div>
+                  <div className="text-sm text-gray-600">Moderate Risk</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="bg-yellow-500 h-2 rounded-full" style={{
+                      width: `${(assessment.riskDistribution.moderate / assessment.totalAssessments) * 100}%`
+                    }}></div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">{assessment.riskDistribution.high}</div>
+                  <div className="text-sm text-gray-600">High Risk</div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="bg-red-500 h-2 rounded-full" style={{
+                      width: `${(assessment.riskDistribution.high / assessment.totalAssessments) * 100}%`
+                    }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Recommendations */}
+            <div className={`mt-6 p-4 rounded-lg ${
+              assessment.assessment.needsProfessionalAssessment ? 
+              'bg-gradient-to-r from-orange-50 to-red-50' : 
+              'bg-gradient-to-r from-green-50 to-emerald-50'
+            }`}>
+              <h3 className="font-medium text-gray-800 mb-3">📋 Recommendations</h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                {assessment.recommendations.map((rec, index) => (
+                  <li key={index} className="flex items-start space-x-2">
+                    <span className={`mt-1 ${
+                      assessment.assessment.needsProfessionalAssessment ? 'text-orange-500' : 'text-green-500'
+                    }`}>•</span>
+                    <span>{rec}</span>
+                  </li>
+                ))}
+              </ul>
+              {assessment.assessment.needsProfessionalAssessment && (
+                <div className="mt-3 p-3 bg-orange-100 rounded-lg">
+                  <p className="text-sm text-orange-800 font-medium">
+                    ⚠️ Professional assessment recommended based on current patterns
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Recent Activity */}
         <motion.div 

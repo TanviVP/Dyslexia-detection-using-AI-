@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Shuffle, Star, Trophy, Lightbulb, RotateCcw, MousePointer } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { getLearningProfile, updateGameProgress, getAdaptiveDifficulty, getEncouragingMessage, speakText } from '../../lib/learningProgress'
+import { saveGameScore } from '../../services/gamesService'
 
 interface GameState {
   targetWord: string
@@ -21,6 +22,7 @@ interface GameState {
 
 const LetterSequencingLearning: React.FC = () => {
   const { user } = useAuth()
+  const [saving, setSaving] = useState(false)
   const [gameState, setGameState] = useState<GameState>({
     targetWord: '',
     scrambledLetters: [],
@@ -54,8 +56,9 @@ const LetterSequencingLearning: React.FC = () => {
   const generateRound = () => {
     if (!user) return
     
-    const difficulty = getAdaptiveDifficulty(user.email, 'letterSequencing')
-    const levelWords = wordsByLevel[Math.min(5, difficulty.level) as keyof typeof wordsByLevel]
+    const adaptiveDifficulty = getAdaptiveDifficulty(user.email || '', 'letterSequencing')
+    const currentLevel = Math.max(1, Math.min(5, difficulty || adaptiveDifficulty.level))
+    const levelWords = wordsByLevel[currentLevel as keyof typeof wordsByLevel]
     const word = levelWords[Math.floor(Math.random() * levelWords.length)]
     
     // Create scrambled letters
@@ -77,7 +80,7 @@ const LetterSequencingLearning: React.FC = () => {
       showHint: false,
       traceMode: false,
       startTime: Date.now(),
-      level: difficulty.level
+      level: currentLevel
     }))
     
     // Speak the word
@@ -111,11 +114,11 @@ const LetterSequencingLearning: React.FC = () => {
     }))
   }
 
-  const checkWord = () => {
+  const checkWord = async () => {
     const userWord = gameState.userSequence.join('')
     const isCorrect = userWord === gameState.targetWord
     const reactionTime = Date.now() - gameState.startTime
-    const accuracy = isCorrect ? 1 : 0
+    const accuracy = isCorrect ? 100 : 0
     
     if (!isCorrect) {
       // Track mistakes for revision mode
@@ -126,9 +129,28 @@ const LetterSequencingLearning: React.FC = () => {
       setGameState(prev => ({ ...prev, mistakes: newMistakes }))
     }
     
+    // Save score to backend
+    if (user?.id) {
+      setSaving(true)
+      try {
+        await saveGameScore({
+          userId: user.id,
+          gameName: 'letter_sequencing',
+          difficulty: gameState.level.toString(),
+          accuracy: accuracy / 100,
+          avgResponseTime: reactionTime,
+          errors: isCorrect ? {} : { [gameState.targetWord]: userWord }
+        })
+      } catch (err) {
+        console.error("Failed to save score:", err)
+      } finally {
+        setSaving(false)
+      }
+    }
+    
     if (user) {
-      const profile = updateGameProgress(user.email, 'letterSequencing', {
-        accuracy,
+      const profile = updateGameProgress(user.email || '', 'letterSequencing', {
+        accuracy: accuracy / 100,
         reactionTime,
         difficulty: gameState.level,
         timestamp: Date.now()
@@ -136,7 +158,7 @@ const LetterSequencingLearning: React.FC = () => {
       
       const recentAccuracy = profile.letterSequencing.averageAccuracy
       const isImprovement = profile.letterSequencing.attempts.length > 1 && 
-        accuracy > profile.letterSequencing.attempts[profile.letterSequencing.attempts.length - 2].accuracy
+        (accuracy / 100) > profile.letterSequencing.attempts[profile.letterSequencing.attempts.length - 2].accuracy
       
       setGameState(prev => ({
         ...prev,
@@ -338,10 +360,10 @@ const LetterSequencingLearning: React.FC = () => {
           <div className="flex justify-center space-x-4">
             <button
               onClick={checkWord}
-              disabled={gameState.userSequence.length !== gameState.targetWord.length || !!gameState.feedback}
+              disabled={gameState.userSequence.length !== gameState.targetWord.length || !!gameState.feedback || saving}
               className="btn btn-primary"
             >
-              Check Spelling
+              {saving ? 'Saving...' : 'Check Spelling'}
             </button>
             
             <button

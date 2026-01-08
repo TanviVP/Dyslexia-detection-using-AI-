@@ -273,19 +273,19 @@ const ReadingComprehensionGame: React.FC<ReadingComprehensionGameProps> = ({ onG
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-4">Read the passage:</h2>
             <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-primary-500">
-              <p className="text-lg leading-relaxed">{currentQuestion.passage}</p>
+              <p className="text-lg leading-relaxed font-dyslexic">{currentQuestion.passage}</p>
             </div>
           </div>
           
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">{currentQuestion.question}</h3>
+            <h3 className="text-lg font-semibold mb-4 font-dyslexic">{currentQuestion.question}</h3>
             
             <div className="space-y-3">
               {currentQuestion.options.map((option, index) => (
                 <button
                   key={index}
                   onClick={() => handleAnswer(index)}
-                  className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200"
+                  className="w-full text-left p-4 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 font-dyslexic"
                 >
                   <span className="font-semibold text-primary-600 mr-3">
                     {String.fromCharCode(65 + index)}.

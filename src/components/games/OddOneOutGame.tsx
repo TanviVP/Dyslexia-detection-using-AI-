@@ -7,6 +7,9 @@ import LevelSelector from './LevelSelector'
 import InteractiveButton from '../ui/InteractiveButton'
 import AnimatedCard from '../ui/AnimatedCard'
 import { playSuccessSound, playErrorSound, createParticles, createStickers, playLevelUpSound } from '../../lib/gameEffects'
+import { saveGameScore } from '../../services/gamesService'
+import { useAuth } from '../../contexts/AuthContext'
+import { useAdaptiveEngine } from '../../hooks/UseAdaptiveEngine'
 
 interface GameState {
   words: string[]
@@ -31,7 +34,9 @@ const OddOneOutGame: React.FC = () => {
     feedback: '',
     startTime: 0
   })
+  const [errors, setErrors] = useState<Record<string, any>>({})
   const navigate = useNavigate()
+  const { difficulty, onLevelEnd, loading: adaptiveLoading } = useAdaptiveEngine(1)
   const gameConfig = gameConfigs['odd-one-out']
 
   const wordGroupSets = {
@@ -125,10 +130,29 @@ const OddOneOutGame: React.FC = () => {
         : `😅 Try again! The odd one was "${gameState.words[gameState.correctAnswer]}"`
     }))
 
-    setTimeout(() => {
+    if (!isCorrect) {
+      setErrors(prev => ({ ...prev, [gameState.words.join(',')]: gameState.words[index] }))
+    }
+
+    setTimeout(async () => {
       if (!selectedLevel) return
       
       if (gameState.round >= selectedLevel.questionsCount) {
+        // Call adaptive engine on game completion
+        const accuracy = (gameState.score / selectedLevel.questionsCount) * 100
+        const avgResponseTime = 2000 // Approximate based on timeout
+        
+        try {
+          await onLevelEnd({
+            gameName: "odd_one_out",
+            accuracy,
+            avgResponseTime,
+            errors
+          })
+        } catch (err) {
+          console.error("Failed to save adaptive data:", err)
+        }
+        
         setGameState(prev => ({ ...prev, gameOver: true }))
       } else {
         setGameState(prev => ({ ...prev, round: prev.round + 1 }))
@@ -273,7 +297,7 @@ const OddOneOutGame: React.FC = () => {
                   >
                     <div data-word-index={index} className="w-full h-full flex items-center justify-center">
                       <motion.span
-                        className="text-2xl font-bold"
+                        className="text-2xl font-bold font-dyslexic"
                         animate={isSelected && isCorrect ? {
                           scale: [1, 1.2, 1],
                           rotate: [0, 5, -5, 0]

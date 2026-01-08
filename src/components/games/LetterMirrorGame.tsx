@@ -4,6 +4,8 @@ import { CheckCircle, XCircle, Clock, Target } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { gameConfigs, GameLevel } from '../../lib/gameConfig'
 import LevelSelector from './LevelSelector'
+import { saveGameScore } from '../../services/gamesService'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface GameState {
   letters: string[]
@@ -30,7 +32,10 @@ const LetterMirrorGame: React.FC = () => {
     gameOver: false,
     feedback: ''
   })
+  const [errors, setErrors] = useState<Record<string, any>>({})
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const [saving, setSaving] = useState(false)
   const gameConfig = gameConfigs['letter-mirror']
 
   const mirrorLetterSets = {
@@ -112,10 +117,32 @@ const LetterMirrorGame: React.FC = () => {
     }
   }
 
-  const nextRound = () => {
+  const nextRound = async () => {
     if (!selectedLevel) return
     
     if (gameState.round >= selectedLevel.questionsCount) {
+      // Save score to backend
+      const accuracy = Math.max(0, (gameState.score / selectedLevel.questionsCount) * 100)
+      const avgResponseTime = (selectedLevel.timeLimit || 8) * 1000
+      
+      if (user?.id) {
+        setSaving(true)
+        try {
+          await saveGameScore({
+            userId: user.id,
+            gameName: 'letter_mirror',
+            difficulty: selectedLevel.difficulty,
+            accuracy: accuracy / 100,
+            avgResponseTime,
+            errors
+          })
+        } catch (err) {
+          console.error("Failed to save score:", err)
+        } finally {
+          setSaving(false)
+        }
+      }
+      
       setGameState(prev => ({ ...prev, gameOver: true }))
     } else {
       setGameState(prev => ({ ...prev, round: prev.round + 1 }))

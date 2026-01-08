@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@supabase/supabase-js": "^2.50.0",
+    "@supabase/supabase-js": "^2.81.1",
     "clsx": "^2.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
     "framer-motion": "^10.18.0",
     "lucide-react": "^0.462.0",
     "react": "^18.3.1",
@@ -35,5 +38,17 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "vite": "^5.4.20"
-  }
+  },
+  "main": "postcss.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TanviVP/Dyslexia-detection-using-AI-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TanviVP/Dyslexia-detection-using-AI-/issues"
+  },
+  "homepage": "https://github.com/TanviVP/Dyslexia-detection-using-AI-#readme"
 }

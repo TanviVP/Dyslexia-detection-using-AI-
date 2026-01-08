@@ -11,6 +11,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import ProfilePage from './pages/ProfilePage'
 import ParentDashboard from './pages/ParentDashboard'
 import TeacherDashboard from './pages/TeacherDashboard'
+import UserProfile from './pages/UserProfile'
 import './App.css'
 
 function App() {
@@ -75,6 +76,14 @@ function App() {
               element={
                 <ProtectedRoute requireTeacher>
                   <TeacherDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/user/:userId" 
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
                 </ProtectedRoute>
               } 
             />

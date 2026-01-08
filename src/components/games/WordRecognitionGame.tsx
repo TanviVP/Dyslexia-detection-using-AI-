@@ -10,6 +10,10 @@ import AnimatedCard from '../ui/AnimatedCard'
 import ProgressBar from '../ui/ProgressBar'
 import { playSuccessSound, playErrorSound, createParticles, shakeElement } from '../../lib/gameEffects'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getAdaptiveDifficulty, getNextLevel } from '../../utils/adaptiveEngine'
+import { saveGameScore } from '../../services/gamesService'
+import NeurologicalInsights from '../ui/NeurologicalInsights'
+import { dispatchGameResultUpdate } from '../../lib/localStorageEvents'
 
 interface WordRecognitionGameProps {
   onGameComplete?: (score: number) => void
@@ -28,8 +32,12 @@ const WordRecognitionGame: React.FC<WordRecognitionGameProps> = ({ onGameComplet
   const [gameStartTime, setGameStartTime] = useState<number>(0)
   const [streak, setStreak] = useState(0)
   const [showFeedback, setShowFeedback] = useState<{type: 'success' | 'error', message: string} | null>(null)
+  const [roundStartTime, setRoundStartTime] = useState<number>(0)
+  const [errors, setErrors] = useState<Record<string, any>>({})
+  const [neurologicalData, setNeurologicalData] = useState<any>(null)
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [adaptiveRecommendation, setAdaptiveRecommendation] = useState<any>(null)
   const wordDisplayRef = useRef<HTMLDivElement>(null)
   
   const gameConfig = gameConfigs['word-recognition']
@@ -90,12 +98,18 @@ const WordRecognitionGame: React.FC<WordRecognitionGameProps> = ({ onGameComplet
     setOptions(allOptions)
     setUsedWords(prev => [...prev, correctWord])
     setTimeLeft(level.timeLimit || 10)
+    setRoundStartTime(Date.now())
     
     setTimeout(() => playWordSound(correctWord), 500)
   }
 
   const handleAnswer = (selectedWord: string) => {
     const isCorrect = selectedWord === currentWord
+    const responseTime = Date.now() - roundStartTime
+    
+    if (!isCorrect) {
+      setErrors(prev => ({ ...prev, [currentWord]: selectedWord }))
+    }
     
     if (isCorrect) {
       const newStreak = streak + 1
@@ -150,12 +164,51 @@ const WordRecognitionGame: React.FC<WordRecognitionGameProps> = ({ onGameComplet
     }
   }
 
-  const completeGame = () => {
+  const completeGame = async () => {
     if (!selectedLevel) return
     
     setGameComplete(true)
     const gameEndTime = Date.now()
     const gameDurationSeconds = Math.floor((gameEndTime - gameStartTime) / 1000)
+    const accuracy = (score / selectedLevel.questionsCount) * 100
+    const avgResponseTime = gameDurationSeconds * 1000 / selectedLevel.questionsCount
+    
+    // Save score to backend and get adaptive recommendation
+    try {
+      // Save score to backend
+      if (user?.id) {
+        await saveGameScore({
+          userId: user.id,
+          gameName: 'word_recognition',
+          difficulty: selectedLevel.difficulty,
+          accuracy: accuracy / 100,
+          avgResponseTime,
+          errors
+        })
+      }
+      
+      // Get adaptive recommendation
+      const nextLevelRec = await getNextLevel({
+        score: accuracy,
+        timeTaken: avgResponseTime,
+        errors,
+        currentDifficulty: selectedLevel.difficulty,
+        game: 'word_recognition'
+      })
+      
+      setAdaptiveRecommendation(nextLevelRec)
+      
+      // Mock neurological data for demo
+      setNeurologicalData({
+        indicators: accuracy < 60 ? ['phonological_processing', 'word_retrieval'] : [],
+        riskLevel: accuracy < 40 ? 'high' : accuracy < 70 ? 'moderate' : 'low',
+        accuracy,
+        nextLevel: nextLevelRec.nextLevel,
+        recommendation: nextLevelRec.reason
+      })
+    } catch (err) {
+      console.error("Failed to save score or get recommendation:", err)
+    }
     
     const result = {
       id: Date.now().toString(),
@@ -175,6 +228,9 @@ const WordRecognitionGame: React.FC<WordRecognitionGameProps> = ({ onGameComplet
     const results = JSON.parse(localStorage.getItem('gameResults') || '[]')
     results.push(result)
     localStorage.setItem('gameResults', JSON.stringify(results))
+    
+    // Dispatch event for real-time updates
+    dispatchGameResultUpdate()
     
     const passed = score >= selectedLevel.passingScore
     toast.success(`Game Complete! You scored ${score}/${selectedLevel.questionsCount}`, {
@@ -256,6 +312,31 @@ const WordRecognitionGame: React.FC<WordRecognitionGameProps> = ({ onGameComplet
                 Back to Games
               </InteractiveButton>
             </div>
+            
+            {neurologicalData && (
+              <div className="mt-6">
+                <NeurologicalInsights
+                  indicators={neurologicalData.indicators}
+                  riskLevel={neurologicalData.riskLevel}
+                  gameName="word_recognition"
+                  accuracy={neurologicalData.accuracy}
+                />
+                {adaptiveRecommendation && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h3 className="font-semibold text-blue-800 mb-2">🎯 Next Level Recommendation</h3>
+                    <p className="text-blue-700">
+                      <strong>Suggested Level:</strong> {adaptiveRecommendation.nextLevel}
+                    </p>
+                    <p className="text-blue-600 text-sm mt-1">
+                      {adaptiveRecommendation.reason}
+                    </p>
+                    <p className="text-blue-500 text-xs mt-1">
+                      Confidence: {Math.round(adaptiveRecommendation.confidence * 100)}%
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </AnimatedCard>
         </div>
       </div>
@@ -363,7 +444,7 @@ const WordRecognitionGame: React.FC<WordRecognitionGameProps> = ({ onGameComplet
           
           <motion.div 
             ref={wordDisplayRef}
-            className="text-5xl font-bold mb-12 text-primary-600 p-6 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border-2 border-primary-200 shadow-lg relative"
+            className="text-5xl font-bold mb-12 text-primary-600 p-6 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border-2 border-primary-200 shadow-lg relative font-dyslexic"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, type: "spring" }}
@@ -393,7 +474,7 @@ const WordRecognitionGame: React.FC<WordRecognitionGameProps> = ({ onGameComplet
                 >
                   <InteractiveButton
                     onClick={() => handleAnswer(option)}
-                    className="w-full h-16 text-lg"
+                    className="w-full h-16 text-lg font-dyslexic"
                     variant="outline"
                     particles={true}
                   >

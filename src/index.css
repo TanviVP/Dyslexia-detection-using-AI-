@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=OpenDyslexic:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -81,6 +83,10 @@
   .pulse-glow {
     @apply animate-pulse shadow-lg;
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  
+  .game-text {
+    font-family: 'OpenDyslexic', 'Inter', system-ui, sans-serif;
   }
 }
 
